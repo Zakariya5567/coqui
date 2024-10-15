@@ -35,19 +35,18 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
-  dio: ^5.7.0  # For making HTTP requests
-  sqflite: ^2.3.2  # SQLite support
-  path_provider: ^2.1.4  # For accessing device directories
-  dropbox_client: ^1.1.1  # Dropbox API client
-  shared_preferences: ^2.3.2
-  http: ^0.13.6
-  url_launcher: ^6.3.1
-#  pdf_render: ^1.4.12
-  path: ^1.9.0
-  read_pdf_text: ^0.2.2
-  flutter_pdfview: ^1.3.3
-  get: ^4.6.6
-  shimmer: ^3.0.0
+  dio:
+  sqflite:
+  path_provider:
+  dropbox_client:
+    path: /Users/projects/FlutterDropbox
+  shared_preferences:
+  http:
+  path:
+  read_pdf_text:
+  flutter_pdfview:
+  get:
+  shimmer:
   connectivity_plus:
   internet_connection_checker:
 

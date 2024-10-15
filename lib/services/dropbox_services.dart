@@ -7,9 +7,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
 import 'package:read_pdf_text/read_pdf_text.dart';
-import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
-
 import '../models/dropbox_config.dart';
 
 class DropboxService {
@@ -23,34 +20,38 @@ class DropboxService {
      String dropboxSecret = dropboxConfig.secret;
 
     try {
-      final res =
-          await Dropbox.init(dropboxClientId, dropboxKey, dropboxSecret);
+      final res = await Dropbox.init(dropboxClientId, dropboxKey, dropboxSecret);
       print("result");
       return res;
     } catch (e) {
       return false;
-      print(e);
     }
   }
 
-  Future authorize() async {
-    final res = await Dropbox.authorize();
-    print('res');
+   Future<bool?> authorize() async {
+    final result = await Dropbox.authorize();
+    await Future.delayed(const Duration(seconds: 10));
+    print('result');
+    return  result ;
   }
 
-  Future authorizeWithAccessToken() async {
-    DropboxConfig dropboxConfig = await loadDropboxConfig();
-    print(dropboxConfig.accessToken);
-    String accessToken = dropboxConfig.accessToken;
-    final result = Dropbox.authorizeWithAccessToken(accessToken);
+  Future<String?> getAccessToken() async {
+    final result = await Dropbox.getAccessToken();
+    print('result');
+    return result;
+  }
+
+
+  Future<bool?> authorizeWithAccessToken(String token) async {
+    String accessToken = token;
+    final result = await Dropbox.authorizeWithAccessToken(accessToken);
     print(result);
+    return result ;
   }
 
   Future getAccountName() async {
-    //if (await checkAuthorized(true)) {
     final user = await Dropbox.getAccountName();
     print('user = $user');
-    //}
   }
 
   Future listFolder(path) async {
@@ -71,7 +72,6 @@ class DropboxService {
         String fileName = file['name'];
         if (fileName.endsWith('.pdf')) {
           String localPath = '${dir.path}/$fileName';
-
           bool fileExistsInDb = await db.isFileInDatabase(localPath);
           // If file is not in the database, download it
           if (!fileExistsInDb) {

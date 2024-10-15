@@ -5,7 +5,6 @@ import 'package:coqui/utils/colors.dart';
 import 'package:coqui/view/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:path_provider/path_provider.dart';

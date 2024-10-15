@@ -39,8 +39,7 @@
             <intent-filter>
 
                 <!-- Change this to be db- followed by your app key -->
-                <data android:scheme="db-f7nw2lp17uwnn0l" />
-
+                <data android:scheme="db-vw3cy8vgmvxeukz" />
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />

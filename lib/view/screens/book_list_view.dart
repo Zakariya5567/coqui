@@ -15,7 +15,6 @@ import 'package:coqui/view/widgets/extention/string_extension.dart';
 import 'package:coqui/view/widgets/extention/widget_extension.dart';
 import 'package:coqui/view/widgets/filter_bottomsheet.dart';
 import 'package:coqui/view/widgets/no_data_found.dart';
-import 'package:dropbox_client/dropbox_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
