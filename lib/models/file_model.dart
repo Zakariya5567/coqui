@@ -1,4 +1,3 @@
-
 import 'dart:typed_data';
 
 class FileModel {
@@ -7,7 +6,12 @@ class FileModel {
   final String? author;
   final String? description;
   final String? filePath;
-  final Uint8List? thumbnailPath;
+  final String? fileMetaPath;
+  final String? coverImagePath;
+  final String? publishedDate;
+  final String? readStatus;
+  final String? downloadDate;
+  final int? totalPages;
 
   FileModel({
     this.id,
@@ -15,7 +19,12 @@ class FileModel {
     this.author,
     this.description,
     this.filePath,
-    this.thumbnailPath,
+    this.fileMetaPath,
+    this.coverImagePath,
+    this.publishedDate,
+    this.readStatus,
+    this.downloadDate,
+    this.totalPages,
   });
 
   // Convert a map from the database to a FileModel object
@@ -26,7 +35,12 @@ class FileModel {
       author: map['author'],
       description: map['description'],
       filePath: map['filePath'],
-      thumbnailPath: map['thumbnailPath'],
+      fileMetaPath: map['fileMetaPath'],
+      coverImagePath: map['coverImagePath'],
+      publishedDate: map['publishedDate'],
+      readStatus: map['readStatus'],
+      downloadDate: map['downloadDate'],
+      totalPages: map['totalPages'],
     );
   }
 
@@ -38,7 +52,12 @@ class FileModel {
       'author': author,
       'description': description,
       'filePath': filePath,
-      'thumbnailPath': thumbnailPath,
+      'fileMetaPath': fileMetaPath,
+      'coverImagePath': coverImagePath,
+      'publishedDate': publishedDate,
+      'readStatus': readStatus,
+      'downloadDate': downloadDate,
+      'totalPages': totalPages,
     };
   }
 }

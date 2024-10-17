@@ -7,18 +7,19 @@ import 'package:get/get.dart';
 import '../../utils/colors.dart';
 
 class NoDataFound extends StatelessWidget {
-  const NoDataFound({
-    super.key,
-    required this.icon,
-    required this.title,
-    this.subtitle,
-    this.iconHeight,
-    this.iconWidth,
-    this.widgetHeight,
-  });
+  const NoDataFound(
+      {super.key,
+      required this.icon,
+      required this.title,
+      this.subtitle,
+      this.iconHeight,
+      this.iconWidth,
+      this.widgetHeight,
+      this.defaultColor});
 
   final String icon;
   final String title;
+  final Color? defaultColor;
   final String? subtitle;
   final double? iconHeight;
   final double? iconWidth;
@@ -35,6 +36,7 @@ class NoDataFound extends StatelessWidget {
           // Logo of the Error that no data found
           Image.asset(
             icon,
+            color: defaultColor ?? AppColor.whitePrimary,
             height: iconHeight ?? 150.h,
             width: iconWidth ?? 150.w,
           ).paddingOnly(bottom: 12.h),
@@ -45,7 +47,7 @@ class NoDataFound extends StatelessWidget {
                 fontSize: 22,
                 fontFamily: AppStyle.gothamMedium,
                 fontWeight: AppStyle.w500,
-                color: AppColor.whitePrimary,
+                color: defaultColor ?? AppColor.whitePrimary,
               )
               .paddingOnly(bottom: 5.h),
           subtitle == null
@@ -56,7 +58,7 @@ class NoDataFound extends StatelessWidget {
                   fontSize: 14,
                   fontFamily: AppStyle.gothamRegular,
                   fontWeight: AppStyle.w500,
-                  color: AppColor.whitePrimary,
+                  color: defaultColor ?? AppColor.whitePrimary,
                 ),
         ],
       ).paddingSymmetric(

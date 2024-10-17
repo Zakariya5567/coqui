@@ -39,16 +39,17 @@ dependencies:
   sqflite:
   path_provider:
   dropbox_client:
-    path: /Users/projects/FlutterDropbox
+    path: ../FlutterDropbox
   shared_preferences:
   http:
   path:
-  read_pdf_text:
-  flutter_pdfview:
   get:
   shimmer:
   connectivity_plus:
   internet_connection_checker:
+  intl:
+  xml:
+  epub_view: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+    - assets/books/
     - assets/
 
   fonts:

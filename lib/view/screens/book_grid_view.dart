@@ -6,7 +6,7 @@ import 'package:coqui/services/dropbox_services.dart';
 import 'package:coqui/utils/colors.dart';
 import 'package:coqui/utils/icons.dart';
 import 'package:coqui/utils/style.dart';
-import 'package:coqui/view/screens/pdf_reader_screen.dart';
+import 'package:coqui/view/screens/book_detail_screen.dart';
 import 'package:coqui/view/shimmers/book_grid_shimmer.dart';
 import 'package:coqui/view/widgets/button_icon.dart';
 import 'package:coqui/view/widgets/custom_text_field.dart';
@@ -22,28 +22,34 @@ import 'dart:io';
 import 'package:get/get.dart';
 
 class BookGridView extends StatelessWidget {
-  const BookGridView({super.key,required this.homeController});
+  const BookGridView({super.key, required this.homeController});
   final HomeController homeController;
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-        itemCount:  homeController.files.length,
-        gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
+        itemCount: homeController.files.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           childAspectRatio: 2.2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
         ),
-        itemBuilder: (context,index){
+        itemBuilder: (context, index) {
           final file = homeController.files[index];
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      PDFReaderScreen(filePath: file.filePath ?? " ",fileName:file.title ?? " "),
+                  builder: (context) => BookDetailScreen(
+                      coverImage: file.coverImagePath == ""
+                          ? const SizedBox()
+                          : Image.file(
+                              File(file.coverImagePath!),
+                              fit: BoxFit.cover,
+                            ),
+                      file: file),
                 ),
               );
             },
@@ -58,15 +64,17 @@ class BookGridView extends StatelessWidget {
                     height: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColor.blackSecondary,
-                      image: const DecorationImage(image: AssetImage(AppIcons.iconBook)),
-                      border: Border.all(
-                          color: AppColor.redPrimary,width: 0.2),
+                      image: const DecorationImage(
+                          image: AssetImage(AppIcons.iconBook)),
+                      border:
+                          Border.all(color: AppColor.redPrimary, width: 0.2),
                     ),
-                    child: file.thumbnailPath == null ? const SizedBox() : Image.memory(
-                      file.thumbnailPath!,
-                      fit: BoxFit.cover,
-                    ),
-
+                    child: file.coverImagePath == null
+                        ? const SizedBox()
+                        : Image.file(
+                            File(file.coverImagePath!),
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   Container(
                     width: 660.w,
@@ -83,32 +91,27 @@ class BookGridView extends StatelessWidget {
                                   color: AppColor.whitePrimary,
                                   fontSize: 26,
                                   maxLine: 2,
-                                  fontFamily: AppStyle.gothamMedium
-                              ),),
+                                  fontFamily: AppStyle.gothamMedium),
+                            ),
                             Icon(
                               size: 50.h,
                               Icons.check_circle_outline_outlined,
-                              color: AppColor.greenPrimary,)
+                              color: AppColor.greenPrimary,
+                            )
                           ],
                         ),
-
-
-                        10.height,
+                        5.height,
                         (file.author ?? " ").toText(
                             color: AppColor.whitePrimary,
                             fontSize: 22,
                             maxLine: 2,
-                            fontFamily: AppStyle.gothamRegular
-                        ),
-
-                        30.height,
+                            fontFamily: AppStyle.gothamRegular),
+                        10.height,
                         (file.description ?? " ").toText(
                             color: AppColor.whitePrimary,
                             fontSize: 22,
                             fontFamily: AppStyle.gothamRegular,
-                            maxLine: 10
-                        ),
-
+                            maxLine: 9),
                       ],
                     ).paddingAll(20.h),
                   )
@@ -116,7 +119,6 @@ class BookGridView extends StatelessWidget {
               ),
             ),
           );
-        }
-    );
+        });
   }
 }

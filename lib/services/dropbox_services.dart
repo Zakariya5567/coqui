@@ -1,26 +1,28 @@
 import 'dart:convert';
 import 'package:coqui/helper/database_helper.dart';
+import 'package:coqui/view/widgets/custom_snackbar.dart';
 import 'package:dropbox_client/dropbox_client.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
-import 'package:read_pdf_text/read_pdf_text.dart';
+import 'package:xml/xml.dart';
 import '../models/dropbox_config.dart';
 
 class DropboxService {
   DatabaseHelper db = DatabaseHelper();
 
-
   Future<bool?> initDropbox() async {
     DropboxConfig dropboxConfig = await loadDropboxConfig();
-     String dropboxClientId = dropboxConfig.clientId;
-     String dropboxKey = dropboxConfig.key;
-     String dropboxSecret = dropboxConfig.secret;
+    String dropboxClientId = dropboxConfig.clientId;
+    String dropboxKey = dropboxConfig.key;
+    String dropboxSecret = dropboxConfig.secret;
 
     try {
-      final res = await Dropbox.init(dropboxClientId, dropboxKey, dropboxSecret);
+      final res =
+          await Dropbox.init(dropboxClientId, dropboxKey, dropboxSecret);
       print("result");
       return res;
     } catch (e) {
@@ -28,11 +30,11 @@ class DropboxService {
     }
   }
 
-   Future<bool?> authorize() async {
+  Future<bool?> authorize() async {
     final result = await Dropbox.authorize();
-    await Future.delayed(const Duration(seconds: 10));
+    await Future.delayed(const Duration(seconds: 30));
     print('result');
-    return  result ;
+    return result;
   }
 
   Future<String?> getAccessToken() async {
@@ -41,12 +43,11 @@ class DropboxService {
     return result;
   }
 
-
   Future<bool?> authorizeWithAccessToken(String token) async {
     String accessToken = token;
     final result = await Dropbox.authorizeWithAccessToken(accessToken);
-    print(result);
-    return result ;
+    print("Authorized with token : $result");
+    return result;
   }
 
   Future getAccountName() async {
@@ -61,184 +62,181 @@ class DropboxService {
     list.addAll(result);
   }
 
-  String? localFilePath;
+  Future<String> getExternalStoragePath() async {
+    // Get the path to external storage
+    final directory = await getExternalStorageDirectory();
+    return directory!.path;
+  }
 
   Future<bool> syncDropboxFiles() async {
+    bool filesDownloadedAndAdded = false;
     try {
-      // Download files from Dropbox to local storage
-      var files = await Dropbox.listFolder(""); // Root directory
+      // Start from the app's folder in Dropbox
+      var authorFolders =
+          await Dropbox.listFolder(""); // Access 'calTablet' directory
       final dir = await getApplicationDocumentsDirectory();
-      for (var file in files) {
-        String fileName = file['name'];
-        if (fileName.endsWith('.pdf')) {
-          String localPath = '${dir.path}/$fileName';
-          bool fileExistsInDb = await db.isFileInDatabase(localPath);
-          // If file is not in the database, download it
-          if (!fileExistsInDb) {
-            // Extract metadata and store it in SQLite
-            await Dropbox.download(file['pathLower'], localPath);
-            print("Downloaded $fileName to $localPath");
 
-            // Now `localPath` has the downloaded file
-            // Extract metadata and store in SQLite (next steps)
-            await extractAndStoreMetadata(localPath, fileName);
-          } else {
-            print(
-                "File $fileName already exists in the database. Skipping download.");
+      int downloadedBooksCount = 0;
+      for (var authorFolder in authorFolders) {
+        var books = await Dropbox.listFolder(authorFolder['pathLower']);
+
+        for (var bookFolder in books) {
+          if (downloadedBooksCount >= 1) {
+            // Stop downloading if 2 books have already been downloaded
+            print('Limit of 2 books reached. Stopping further downloads.');
+            return true;
+          }
+
+          var bookFiles = await Dropbox.listFolder(bookFolder['pathLower']);
+
+          String? coverPath;
+          String? epubPath;
+          String? opfPath;
+
+          // Retrieve files (cover image, EPUB, and OPF metadata)
+          for (var file in bookFiles) {
+            String fileName = file['name'];
+            String filePath = file['pathLower'];
+
+            if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
+              coverPath = filePath;
+            } else if (fileName.endsWith('.epub')) {
+              epubPath = filePath;
+            } else if (fileName.endsWith('.opf')) {
+              opfPath = filePath;
+            }
+          }
+
+          // Proceed if all required files are found
+          if (coverPath != null && epubPath != null && opfPath != null) {
+            // Ensure dynamic directory exists before downloading
+            final dynamicDirPath =
+                '${dir.path}/${authorFolder['name']}/${bookFolder['name']}';
+            final dynamicDir = Directory(dynamicDirPath);
+
+            if (!await dynamicDir.exists()) {
+              await dynamicDir.create(
+                  recursive: true); // Create the directory if necessary
+            }
+
+            // Construct correct local paths
+            String localCoverPath =
+                '${dynamicDir.path}/${coverPath.split('/').last}';
+            String localEpubPath =
+                '${dynamicDir.path}/${epubPath.split('/').last}';
+            String localOpfPath =
+                '${dynamicDir.path}/${opfPath.split('/').last}';
+
+            // Extract metadata from OFP file before downloading to check if the book exists
+
+            bool? existsInDB = await db.isFileInDatabase(localOpfPath);
+            if (existsInDB) {
+              print('Book  already exists in the database. Skipping download.');
+              continue; // Skip this book, no need to download
+            }
+            // Download files locally
+            await Future.wait([
+              Dropbox.download(coverPath, localCoverPath),
+              Dropbox.download(epubPath, localEpubPath),
+              Dropbox.download(opfPath, localOpfPath),
+            ]);
+            // Extract metadata from OPF file and store in SQLite
+            await extractAndStoreMetadataFromOFP(
+                localCoverPath, localEpubPath, localOpfPath);
+            downloadedBooksCount++;
           }
         }
       }
-      return false;
+      return true;
     } catch (e) {
-      return false;
       print('Error syncing with Dropbox: $e');
+      return false;
     }
   }
 
-  Future uploadTest() async {
-    var tempDir = await getTemporaryDirectory();
-    var filepath = '${tempDir.path}/test_upload.txt';
-    File(filepath).writeAsStringSync(
-        'contents.. from ' + (Platform.isIOS ? 'iOS' : 'Android') + '\n');
-
-    final result =
-        await Dropbox.upload(filepath, '/test_upload.txt', (uploaded, total) {
-      print('progress $uploaded / $total');
-    });
-    print(result);
-  }
-
-  Future downloadTest() async {
-    var tempDir = await getTemporaryDirectory();
-    var filepath = '${tempDir.path}/test_download.zip'; // for iOS only!!
-    // print(filepath);
-    final result = await Dropbox.download('/file_in_dropbox.zip', filepath,
-        (downloaded, total) {
-      print('progress $downloaded / $total');
-    });
-    print(result);
-    print(File(filepath).statSync());
-  }
-
-  Future<String?> getTemporaryLink(path) async {
-    final result = await Dropbox.getTemporaryLink(path);
-    return result;
-  }
-
-  Future<Uint8List?> getThumbnail(path) async {
+  Future<String?> extractAndStoreMetadataFromOFP(
+      String coverPath, String epubPath, String opfPath) async {
     try {
-      final b64 = await Dropbox.getThumbnailBase64String(path);
-      Uint8List thumbImage = base64Decode(b64!);
-      return thumbImage;
-    } catch (e) {
-      print(e);
-    }
-    return null;
-  }
+      final file = File(opfPath);
+      if (await file.exists()) {
+        // Read the OPF file content
+        String opfContent = await file.readAsString();
+        print("Metadata content: $opfContent");
 
-  Future getAccountInfo() async {
-    final accountInfo = await Dropbox.getCurrentAccount();
-    if (accountInfo != null) {
-      print(accountInfo.name!.displayName);
-      print(accountInfo.email!);
-      print(accountInfo.rootInfo!.homeNamespaceId!);
-      print(accountInfo.profilePhotoUrl!);
-    }
-  }
+        // Parse the OPF content as XML
+        final document = XmlDocument.parse(opfContent);
 
-  Future<void> extractAndStoreMetadata(
-      String localPath, String fileName) async {
-    try {
-      // Extract text from the first page
-      String firstPageText = await extractFirstPageText(localPath);
+        final titleElements = document.findAllElements('dc:title');
+        final title = titleElements.isNotEmpty
+            ? titleElements.first.text // Take the first title if multiple found
+            : 'Untitled';
 
-      // Extract title and author from the text
-      String? title = extractTitleFromText(firstPageText);
-      String? author = extractAuthorFromText(firstPageText);
+        // Extract all authors and concatenate them
+        final authorElements = document.findAllElements('dc:creator');
+        final author = authorElements.isNotEmpty
+            ? authorElements
+                .map((e) => e.text)
+                .toList()
+                .join(', ') // Join authors if multiple
+            : 'Unknown Author';
 
-      String description = extractDescriptionFromText(firstPageText);
+        final descriptionElements = document.findAllElements('dc:description');
+        String description = descriptionElements.isNotEmpty
+            ? descriptionElements.first.text
+            : 'No description available';
 
-      Uint8List? thumbnail = await getThumbnail('/$fileName');
+        // Clean up the description by removing any HTML tags
+        description = description.replaceAll(
+            RegExp(r'<[^>]*>'), ''); // Removes all HTML tags
 
-      // Step 3: Store metadata and thumbnail in SQLite
-      await db.saveFileToDatabase(
-          title: title ?? 'Unknown Title',
-          author: author ?? 'Unknown Author',
-          description: description,
-          filePath: localPath,
-          thumbnailPath: thumbnail);
-    } catch (e) {
-      print('Error extracting metadata: $e');
-    }
-  }
+        final publishedDateString =
+            document.findAllElements('dc:date').single.text;
 
-  String extractDescriptionFromText(String text) {
-    try {
-      // Replace newlines with spaces
-      text = text.replaceAll('\n', ' ');
-      // If the text has more than 200 characters, return the first 200 characters
-      if (text.length > 200) {
-        return text.substring(0, 200).trim();
-      }
-      return text.trim();
-    } catch (e) {
-      print('Error extracting description: $e');
-      return 'No description available';
-    }
-  }
+        // Parse the published date and format it
+        DateTime publishedDateTime = DateTime.parse(publishedDateString);
 
-  String? extractTitleFromText(String text) {
-    try {
-      // Example: Assume the title is the first line of the text
-      List<String> lines = text.split('\n');
+        String publishedDate =
+            DateFormat("MMM d, yyyy").format(publishedDateTime);
 
-      if (lines.isNotEmpty) {
-        return "${lines[0].trim()} ${lines[1].trim()}"; // The first line as the title
-      }
-    } catch (e) {
-      print(e);
-    }
-    return null; // Return null if no title is found
-  }
+        // Extract the readStatus
+        // final readStatusMeta = document.findElements('meta').where((meta) {
+        //   return meta.getAttribute('name') ==
+        //       'calibre:user_metadata:#read_status';
+        // }).first;
+        //
+        // final readStatus = readStatusMeta.getAttribute('content') == 'true';
+        //
+        // // Extract pages
+        // final pagesMeta = document.findElements('meta').where((meta) {
+        //   return meta.getAttribute('name') == 'calibre:user_metadata:#pages';
+        // }).first;
+        //
+        // final pages = int.tryParse(pagesMeta.getAttribute('content') ?? '0');
 
-  String? extractAuthorFromText(String text) {
-    try {
-      // Example: Assume the author's name is in the second line or somewhere near the start
-      List<String> lines = text.split('\n');
+        // Use current timestamp as the download date and format it as "May 2, 2024"
+        String downloadDate = DateFormat("MMM d, yyyy").format(DateTime.now());
 
-      for (String line in lines) {
-        if (line.toLowerCase().contains('author') ||
-            line.toLowerCase().contains('by') ||
-            line.toLowerCase().contains('published by') ||
-            line.toLowerCase().contains("written by")) {
-          // This is just a heuristic; it looks for lines containing the word 'author' or 'by'
-          return line
-              .replaceAll(RegExp(r'author|by', caseSensitive: false), '')
-              .trim();
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-    // If no author info found, return null
-    return null;
-  }
+        // Store the metadata and cover image path in the database
+        await db.saveFileToDatabase(
+          title: title.isEmpty ? 'Unknown Title' : title,
+          author: author.isEmpty ? 'Unknown Author' : author,
+          description:
+              description.isEmpty ? 'No description available' : description,
+          publishedDate: publishedDate.isEmpty ? 'Unknown' : publishedDate,
+          readStatus: "0",
+          downloadDate: downloadDate,
+          filePath: epubPath,
+          fileMetaPath: opfPath,
+          totalPages: 0,
+          coverImagePath: coverPath, // Store the cover image path
+        );
 
-  Future<String> extractFirstPageText(String localPath) async {
-    try {
-      // Load the PDF file using read_pdf_text
-      final text = await ReadPdfText.getPDFtext(localPath);
-
-      // Check if text extraction is successful
-      if (text.isNotEmpty) {
-        // Return the extracted text
-        return text;
+        print("Metadata extraction and database save successful.");
       } else {
-        return 'No text found';
+        print("OPF file not found at: $opfPath");
       }
     } catch (e) {
-      print('Error extracting text: $e');
-      return 'Error extracting text'; // Return a message in case of error
+      print('Error extracting metadata from OPF: $e');
     }
   }
 }

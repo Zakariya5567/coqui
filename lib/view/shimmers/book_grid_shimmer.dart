@@ -1,5 +1,4 @@
 import 'package:coqui/view/widgets/extention/int_extension.dart';
-import 'package:coqui/view/widgets/extention/widget_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,93 +12,83 @@ class BookGridShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-        shrinkWrap:  true,
+        shrinkWrap: true,
         itemCount: 16,
-        gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           childAspectRatio: 2.2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
         ),
-        itemBuilder: (context,index){
-          return
-            Shimmer.fromColors(
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
               baseColor: AppColor.blackPrimary,
               highlightColor: AppColor.blackSecondary,
-            child:
-            Container(
-            width: double.infinity,
-            color: AppColor.blackPrimary.withOpacity(0.5),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColor.blackSecondary,
-                    image: const DecorationImage(image: AssetImage(AppIcons.iconBook)),
-                    border: Border.all(
-                        color: AppColor.redPrimary,width: 0.2),
-                  ),
-                  width: 260.w,
+              child: Container(
+                width: double.infinity,
+                color: AppColor.blackPrimary.withOpacity(0.5),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColor.blackSecondary,
+                        image: const DecorationImage(
+                            image: AssetImage(AppIcons.iconBook)),
+                        border:
+                            Border.all(color: AppColor.redPrimary, width: 0.2),
+                      ),
+                      width: 260.w,
+                    ),
+                    Container(
+                      width: 670.w,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          10.height,
+                          Container(
+                            width: 300.w,
+                            height: 50.h,
+                            color: AppColor.blackSecondary,
+                          ),
+                          10.height,
+                          Container(
+                            width: 450.w,
+                            height: 50.h,
+                            color: AppColor.blackSecondary,
+                          ),
+                          20.height,
+                          Container(
+                            width: 650.w,
+                            height: 50.h,
+                            color: AppColor.blackSecondary,
+                          ),
+                          10.height,
+                          Container(
+                            width: 650.w,
+                            height: 50.h,
+                            color: AppColor.blackSecondary,
+                          ),
+                          10.height,
+                          Container(
+                            width: 650.w,
+                            height: 50.h,
+                            color: AppColor.blackSecondary,
+                          ),
+                          10.height,
+                          Container(
+                            width: 650.w,
+                            height: 50.h,
+                            color: AppColor.blackSecondary,
+                          ),
+                        ],
+                      ).paddingSymmetric(horizontal: 20.w),
+                    )
+                  ],
                 ),
-                Container(
-                  width: 670.w,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      10.height,
-                      Container(
-                        width: 300.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-
-                      10.height,
-                      Container(
-                        width: 450.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-                      20.height,
-                      Container(
-                        width: 650.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-                      10.height,
-                      Container(
-                        width: 650.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-                      10.height,
-                      Container(
-                        width: 650.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-                      10.height,
-                      Container(
-                        width: 650.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-                      10.height,
-                      Container(
-                        width: 650.w,
-                        height: 50.h,
-                        color: AppColor.blackSecondary,
-                      ),
-
-                    ],
-                  ).paddingSymmetric(horizontal: 20.w),
-                )
-              ],
-            ),
-          ));
-        }
-    ).paddingAll(20.h);
+              ));
+        }).paddingAll(20.h);
   }
 }
 
