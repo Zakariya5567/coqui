@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
           );
         },
         debugShowCheckedModeBanner: false,
-        title: 'Coqui',
+        title: 'CalibreTablet',
         theme: ThemeData(
           useMaterial3: false,
           primarySwatch: const MaterialColor(0x219942, AppColor.primaryColor),

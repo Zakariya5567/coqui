@@ -94,6 +94,7 @@ class DatabaseHelper {
   Future<List<FileModel>> fetchFilesFromDatabase({
     required String filterByStatus,
     required String sortOrder,
+    required String orderBy,
   }) async {
     final db = await database;
 
@@ -106,8 +107,9 @@ class DatabaseHelper {
     }
 
     // Construct the ORDER BY clause for sorting by title or author, ascending/descending
-    String orderByClause = 'title'; // Default sorting by title
-    if (sortOrder == "descending") {
+    String orderByClause = sortOrder; // Default sorting by title
+    String order = orderBy;
+    if (order == "descending") {
       orderByClause = '$orderByClause DESC';
     }
 
@@ -124,11 +126,11 @@ class DatabaseHelper {
   }
 
   // Fetch files from the database based on search criteria
-  Future<List<FileModel>> fetchSearchFilesFromDatabase({
-    required String searchText,
-    required String filterByStatus,
-    required String sortOrder,
-  }) async {
+  Future<List<FileModel>> fetchSearchFilesFromDatabase(
+      {required String searchText,
+      required String filterByStatus,
+      required String sortOrder,
+      required String orderBy}) async {
     final db = await database;
 
     // Construct the WHERE clause for filtering by search text and read/unread status
@@ -140,8 +142,9 @@ class DatabaseHelper {
     }
 
     // Construct the ORDER BY clause for sorting by title or author, ascending/descending
-    String orderByClause = 'title'; // Default sorting by title
-    if (sortOrder == "descending") {
+    String orderByClause = sortOrder; // Default sorting by title
+    String order = orderBy;
+    if (order == "descending") {
       orderByClause = '$orderByClause DESC';
     }
 
@@ -184,5 +187,16 @@ class DatabaseHelper {
     final db = await database;
     await db.delete('files');
     print('Database cleared: All files have been deleted.');
+  }
+
+  Future<void> markBookAsRead(int id) async {
+    final db = await database;
+    // Update the read_status to "1" (read)
+    await db.update(
+      'files',
+      {'readStatus': "1"}, // Set the read status to "1" (read)
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

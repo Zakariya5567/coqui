@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:coqui/controller/home_controller.dart';
 import 'package:coqui/models/file_model.dart';
 import 'package:coqui/utils/constant.dart';
 import 'package:coqui/view/widgets/extention/int_extension.dart';
@@ -28,6 +29,7 @@ class BookDetailScreen extends StatefulWidget {
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
   EpubController? _epubReaderController;
+  HomeController homeController = Get.put(HomeController());
   @override
   initState() {
     initializeView();
@@ -41,6 +43,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     setState(() {
       isLoading = false;
     });
+    if (widget.file.readStatus == "0") {
+      homeController.onBookRead(widget.file.id!);
+    }
   }
 
   @override

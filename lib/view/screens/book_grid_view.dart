@@ -39,6 +39,8 @@ class BookGridView extends StatelessWidget {
           final file = homeController.files[index];
           return GestureDetector(
             onTap: () {
+              // homeController.extractAndStoreMetadataFromOFP(
+              //     file.coverImagePath!, file.filePath!, file.fileMetaPath!);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -76,7 +78,7 @@ class BookGridView extends StatelessWidget {
                             fit: BoxFit.cover,
                           ),
                   ),
-                  Container(
+                  SizedBox(
                     width: 660.w,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -93,11 +95,15 @@ class BookGridView extends StatelessWidget {
                                   maxLine: 2,
                                   fontFamily: AppStyle.gothamMedium),
                             ),
-                            Icon(
-                              size: 50.h,
-                              Icons.check_circle_outline_outlined,
-                              color: AppColor.greenPrimary,
-                            )
+                            (file.readStatus != null && file.readStatus == "1")
+                                ? Icon(
+                                    size: 50.h,
+                                    Icons.check_circle_outline_outlined,
+                                    color: AppColor.greenPrimary,
+                                  )
+                                : SizedBox(
+                                    width: 50.h,
+                                  )
                           ],
                         ),
                         5.height,

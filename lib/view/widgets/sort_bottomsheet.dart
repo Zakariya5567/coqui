@@ -7,6 +7,7 @@ import 'package:coqui/view/widgets/extention/int_extension.dart';
 import 'package:coqui/view/widgets/extention/string_extension.dart';
 import 'package:coqui/view/widgets/extention/widget_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
@@ -51,8 +52,28 @@ sortBottomSheet() {
                     30.width,
                   ],
                 ),
-                50.height,
+                40.height,
 
+                ASCDESCItem(
+                  title: "Ascending",
+                  iconData: AppIcons.iconAscending,
+                  onTap: () {
+                    controller.seOrderBy("ascending");
+                    Get.back();
+                  },
+                  isActive: controller.selectedOrderBy == "ascending",
+                ),
+                ASCDESCItem(
+                  title: "Descending",
+                  iconData: AppIcons.iconDescending,
+                  onTap: () {
+                    controller.seOrderBy("descending");
+                    Get.back();
+                  },
+                  isActive: controller.selectedOrderBy == "descending",
+                ),
+
+                30.height,
                 // Sort by Author
                 SortItem(
                   title: "Author",
@@ -80,10 +101,10 @@ sortBottomSheet() {
                   title: "Date Published",
                   iconData: Icons.date_range,
                   onTap: () {
-                    controller.setSelectedSort("datePublished");
+                    controller.setSelectedSort("publishedDate");
                     Get.back();
                   },
-                  isActive: controller.selectedSort == "datePublished",
+                  isActive: controller.selectedSort == "publishedDate",
                 ),
 
                 // Sort by Date Downloaded
@@ -91,29 +112,10 @@ sortBottomSheet() {
                   title: "Date Downloaded",
                   iconData: Icons.download,
                   onTap: () {
-                    controller.setSelectedSort("dateDownloaded");
+                    controller.setSelectedSort("downloadDate");
                     Get.back();
                   },
-                  isActive: controller.selectedSort == "dateDownloaded",
-                ),
-
-                SortItem(
-                  title: "Ascending",
-                  iconData: Icons.arrow_upward,
-                  onTap: () {
-                    controller.setSelectedSort("ascending");
-                    Get.back();
-                  },
-                  isActive: controller.selectedSort == "ascending",
-                ),
-                SortItem(
-                  title: "Descending",
-                  iconData: Icons.arrow_downward,
-                  onTap: () {
-                    controller.setSelectedSort("descending");
-                    Get.back();
-                  },
-                  isActive: controller.selectedSort == "descending",
+                  isActive: controller.selectedSort == "downloadDate",
                 ),
               ],
             ).paddingSymmetric(horizontal: 40.w, vertical: 40.h),
@@ -164,5 +166,51 @@ class SortItem extends StatelessWidget {
         ],
       ).paddingAll(28.h),
     ).paddingOnly(bottom: 10.h).onPress(onTap);
+  }
+}
+
+class ASCDESCItem extends StatelessWidget {
+  const ASCDESCItem({
+    super.key,
+    required this.onTap,
+    required this.title,
+    required this.isActive,
+    required this.iconData,
+  });
+
+  final String title;
+  final VoidCallback onTap;
+  final bool isActive;
+  final String iconData;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120.h,
+      width: 380.w,
+      decoration: BoxDecoration(
+          color: AppColor.blackPrimary,
+          border: Border.all(
+              color: isActive ? AppColor.greenPrimary : AppColor.blackPrimary)),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            iconData,
+            height: 90.h,
+            width: 90.h,
+            fit: BoxFit.cover,
+          ),
+          30.width,
+          title
+              .toText(
+                textAlign: TextAlign.center,
+                color: AppColor.whitePrimary,
+                fontFamily: AppStyle.gothamRegular,
+                fontSize: 28,
+              )
+              .paddingOnly(bottom: 10.h),
+        ],
+      ).paddingAll(28.h),
+    ).align(Alignment.centerRight).paddingOnly(bottom: 15.h).onPress(onTap);
   }
 }
